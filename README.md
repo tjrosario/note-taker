@@ -1,6 +1,6 @@
-# Getting Started with Create React App
+# Note Taker App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Simple note taking app that allows user to add, edit and remove plain text notes.
 
 ## Available Scripts
 
