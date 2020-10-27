@@ -9,6 +9,7 @@ import {
     Textarea
 } from '@chakra-ui/core';
 import React, {
+    useEffect,
     useRef, useState
 } from 'react';
 import {
@@ -24,6 +25,7 @@ function Notes() {
 
     const textareaRef = useRef();
 
+    const noteToEdit = useSelector((state) => state.notes.note);
     const notes = useSelector((state) => state.notes.notes);
 
     const [
@@ -31,26 +33,44 @@ function Notes() {
         setNote
     ] = useState('');
 
-    const submit = () => {
-        dispatch(allActions.notesActions.createNote(note));
+    useEffect(() => {
+        setNote(noteToEdit.value);
+    }, [
+        noteToEdit
+    ]);
 
-        // Reset text area cursor position to beginning
-        setImmediate(() => {
-            textareaRef.current.selectionStart = 0;
-            textareaRef.current.selectionEnd = 0;
-        });
+    const reset = () => dispatch(allActions.notesActions.resetNote());
 
-        setNote('');
-    };
-
-    const editNote = (id) => dispatch(allActions.notesActions.editNote(id));
+    const editNote = (item) => dispatch(allActions.notesActions.editNote(item));
 
     const removeNote = (id) => {
         const confirmed = window.confirm('Are you sure you want to remove this note?');
 
         if (confirmed) {
             dispatch(allActions.notesActions.deleteNote(id));
+            if (id === noteToEdit.id) {
+                reset();
+            }
         }
+    };
+
+    const submit = () => {
+        if (noteToEdit.id) {
+            dispatch(allActions.notesActions.updateNote({
+                ...noteToEdit,
+                value: note
+            }));
+        } else {
+            dispatch(allActions.notesActions.createNote(note));
+
+            // Reset text area cursor position to beginning
+            setImmediate(() => {
+                textareaRef.current.selectionStart = 0;
+                textareaRef.current.selectionEnd = 0;
+            });
+        }
+
+        reset();
     };
 
     // Handle enter key
@@ -88,12 +108,23 @@ function Notes() {
                     justifyContent={'flex-end'}
                 >
                     <Button
+                        isDisabled={!note}
                         onClick={submit}
                         variantColor={'blue'}
-                    >Add Note
+                    >
+                        {noteToEdit.id ? 'Update' : 'Add' }
+                        &nbsp;Note
+                    </Button>
+
+                    <Button
+                        ml={'3'}
+                        onClick={reset}
+                        variant={'outline'}
+                        variantColor={'teal'}
+                    >
+                        Cancel
                     </Button>
                 </Box>
-
             </Box>
 
             <Box as={'section'}>
